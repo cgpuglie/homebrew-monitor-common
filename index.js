@@ -29,10 +29,10 @@ module.exports = function common ({color, name, environment}) {
   // create error handler function - doesn't work as middleware
   // log errors as applicable
   function errorHandler({code=500, err=new Error()}, req, res, next) {
-    return code >= 500
-      ? !silent ? console.log(`${!color ? name : chalk[color](name) } > ${err.message}`, err) : false // log error and stack trace above 500
-      : !silent ? console.log(`${!color ? name : chalk[color](name) } > ${err.message}`): false // log only message - cleaner
-    || res.status(code).send({message: err.message})
+    return res.status(code).send({message: err.message})
+    && code >= 500
+      ? (!silent) ? console.log(`${!color ? name : chalk[color](name) } > ${err.message}`, err) : false // log error and stack trace above 500
+      : (!silent) ? console.log(`${!color ? name : chalk[color](name) } > ${err.message}`) : false // log only message - cleaner
   }
 
   
