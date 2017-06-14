@@ -4,7 +4,7 @@ Common logic for Homebrew-monitor microservices
 
 ### Testing
 
-The easiest way to test the shared module is to mount the dependency into a microservice.
+The easiest way to test the shared module is to mount the dependency into a service with Docker.
 ```bash
 docker run \
   -it --rm \
