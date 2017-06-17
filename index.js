@@ -2,8 +2,33 @@
 const chalk = require('chalk')
 const rp = require('request-promise')
 const authorization = require('auth-header')
+const snake = require('snake-case')
 
-module.exports = function common ({color, name, environment, authEndpoint}) {
+// TODO: handle typing from env: false, not 'false'
+// Parse config values and check for overrides
+function parseConfig(config) {
+  return Object.keys(config)
+    .map(function setConfigValue(key) {
+      // generate env var equivalent - env vars have service name as prefix and use UC snake notation
+      // EG root => AUTH_ROOT
+      let envKey = `${config.name.toUpperCase()}_${snake(key).toUpperCase()}`
+      
+      // for null and scalar values, allow ENV override
+      return (config[key] === null || typeof config[key] !== 'object')
+        ? { 
+            [key]: process.env[envKey] !== undefined  // use env unless undefined
+              ? process.env[envKey] 
+              : config[key] }
+        : config[key]
+    })
+    .reduce(function mergeConfigs(prevKv, currKv) {
+      // merge objects together
+      return Object.assign({}, prevKv, currKv)
+    }, {})
+}
+
+// Create express handlers with service-specific config
+function handlers ({color, name, environment, authEndpoint}) {
   // do we log?
   const silent = (environment === 'Test')
 
@@ -55,6 +80,7 @@ module.exports = function common ({color, name, environment, authEndpoint}) {
   
   // start server
   return {
+
     notFoundHandler,
     errorForwardHandler,
     errorHandler,
@@ -62,3 +88,5 @@ module.exports = function common ({color, name, environment, authEndpoint}) {
     healthHandler
   }
 }
+
+module.exports = {  parseConfig, handlers }
